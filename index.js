@@ -56,10 +56,34 @@ async function processDirectory(dirname) {
   return router;
 }
 
-module.exports = function (app, options) {
+/**
+ * 
+ * @param {Express | undefined} app - express application or undefined
+ * @param {object | undefined} options - {
+ *   baseDir: base directory defaults to /routes
+ *   baseRoute: route base defaults to "/"
+ * } 
+ * @returns 
+ */
+module.exports = function (...args) {
+  let app = undefined;
+  let options = undefined;
+
+  if (typeof args[0] === 'function') {
+    app = args[0];
+    if (typeof args[1] === 'object') {
+      options = args[1];
+    }
+  }
+  else if (typeof args[0] === 'object') {
+      options = args[0];
+  }
+
+  app = app || express();
   options = options || {};
 
   // require.main.path?
+  console.log(require.main.path,require.main.filename);
   baseDir = options.baseDir || path.join(path.dirname(require.main.filename), "routes");
   baseRoute = options.baseRoute || "/";
 
@@ -70,5 +94,6 @@ module.exports = function (app, options) {
 
   return processDirectory(baseDir).then((router) => {
     app.use(baseRoute,router);
+    return app;
   })
 };
